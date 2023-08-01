@@ -1,3 +1,5 @@
+//import 'dart:html';
+
 import 'package:english_words/english_words.dart';
 import 'package:flutter/material.dart';
 //import 'package:flutter/rendering.dart';
@@ -28,6 +30,7 @@ class MyApp extends StatelessWidget {
 
 class MyAppState extends ChangeNotifier {
   var current = WordPair.random();
+  var currentForCard = WordPair;
 
   void getNext() {
     current = WordPair.random();
@@ -53,6 +56,13 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   var selectedIndex = 0;
+  final todos = List.generate(
+    20,
+    (i) => Todo(
+      'Todo $i',
+      'A description of what needs to be done for Todo $i',
+    ),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -63,6 +73,9 @@ class _MyHomePageState extends State<MyHomePage> {
         break;
       case 1:
         page = Favorites();
+        break;
+      case 2:
+        page = TodosScreen(todos: todos);
         break;
       default:
         throw UnimplementedError('no widget for $selectedIndex');
@@ -83,6 +96,10 @@ class _MyHomePageState extends State<MyHomePage> {
                   NavigationRailDestination(
                     icon: Icon(Icons.favorite),
                     label: Text('Favorites'),
+                  ),
+                  NavigationRailDestination(
+                    icon: Icon(Icons.abc),
+                    label: Text('ListaGenerada'),
                   ),
                 ],
                 selectedIndex: selectedIndex,
@@ -168,8 +185,100 @@ class Favorites extends StatelessWidget {
         ListTile(
           leading: Icon(Icons.favorite),
           title: Text(favorito.asLowerCase),
+          onTap: () {
+            Navigator.push(context,
+                MaterialPageRoute(builder: (context) => const FirstRoute()));
+          },
         )
     ]);
+  }
+}
+
+class DetailScreen extends StatelessWidget {
+  const DetailScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final todo = ModalRoute.of(context)!.settings.arguments as Todo;
+
+    // Use the Todo to create the UI.
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(todo.title),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Text(todo.description),
+      ),
+    );
+  }
+}
+
+class TodosScreen extends StatelessWidget {
+  // Requiring the list of todos.
+  const TodosScreen({super.key, required this.todos});
+
+  final List<Todo> todos;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Todos'),
+      ),
+      //passing in the ListView.builder
+      body: ListView.builder(
+        itemCount: todos.length,
+        itemBuilder: (context, index) {
+          return ListTile(
+            title: Text(todos[index].title),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const DetailScreen(),
+                  // Pass the arguments as part of the RouteSettings. The
+                  // DetailScreen reads the arguments from these settings.
+                  settings: RouteSettings(
+                    arguments: todos[index],
+                  ),
+                ),
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+}
+
+class DetalleFavorito extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Text("hola"),
+    );
+  }
+}
+
+class FirstRoute extends StatelessWidget {
+  const FirstRoute({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Detalles de la palabra favorita'),
+      ),
+      body: Center(
+        child: ElevatedButton(
+          child: const Text('Open route'),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
+      ),
+    );
   }
 }
 
@@ -202,4 +311,11 @@ class BigCard extends StatelessWidget {
       ),
     );
   }
+}
+
+class Todo {
+  final String title;
+  final String description;
+
+  const Todo(this.title, this.description);
 }
